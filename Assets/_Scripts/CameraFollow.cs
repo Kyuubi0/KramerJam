@@ -1,45 +1,56 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target; // Oyuncu
-    public Collider2D[] boundsColliders; // Sýnýr colliderlarý
+    public Transform target; // Takip edilecek karakter
+    public float smoothSpeed = 0.125f; // Kameranýn takip yumuþaklýðý
 
-    private float halfHeight;
-    private float halfWidth;
-    private Vector3 minBounds;
-    private Vector3 maxBounds;
+    public List<BoxCollider2D> cameraBounds; // Kamera alaný sýnýrlarýný belirleyen collider listesi
 
-    void Start()
+    private float camHalfHeight;
+    private float camHalfWidth;
+
+    private void Start()
     {
-        Camera cam = GetComponent<Camera>();
-        halfHeight = cam.orthographicSize;
-        halfWidth = halfHeight * cam.aspect;
-
-        if (boundsColliders == null || boundsColliders.Length == 0)
+        if (target == null)
         {
-            Debug.LogError("Bounds Colliders atanmamýþ!");
+            Debug.LogError("CameraFollow: Target atanmamýþ!");
+            enabled = false;
             return;
         }
 
-        Bounds combinedBounds = boundsColliders[0].bounds;
-        for (int i = 1; i < boundsColliders.Length; i++)
-        {
-            combinedBounds.Encapsulate(boundsColliders[i].bounds);
-        }
-
-        minBounds = combinedBounds.min;
-        maxBounds = combinedBounds.max;
+        Camera cam = Camera.main;
+        camHalfHeight = cam.orthographicSize;
+        camHalfWidth = cam.aspect * camHalfHeight;
     }
 
-    void LateUpdate()
+    private void LateUpdate()
     {
-        if (target == null || boundsColliders == null || boundsColliders.Length == 0)
-            return;
+        if (target == null) return;
 
-        float clampedX = Mathf.Clamp(target.position.x, minBounds.x + halfWidth, maxBounds.x - halfWidth);
-        float clampedY = Mathf.Clamp(target.position.y, minBounds.y + halfHeight, maxBounds.y - halfHeight);
+        Vector3 desiredPosition = new Vector3(target.position.x, target.position.y, transform.position.z);
+        Vector3 clampedPosition = ClampPositionToBounds(desiredPosition);
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, clampedPosition, smoothSpeed);
+        transform.position = smoothedPosition;
+    }
 
-        transform.position = new Vector3(clampedX, clampedY, transform.position.z);
+    private Vector3 ClampPositionToBounds(Vector3 position)
+    {
+        foreach (var bound in cameraBounds)
+        {
+            if (bound.OverlapPoint(target.position))
+            {
+                Bounds b = bound.bounds;
+
+                float clampedX = Mathf.Clamp(position.x, b.min.x + camHalfWidth, b.max.x - camHalfWidth);
+                float clampedY = Mathf.Clamp(position.y, b.min.y + camHalfHeight, b.max.y - camHalfHeight);
+
+                return new Vector3(clampedX, clampedY, position.z);
+            }
+        }
+
+        // Eðer sýnýr içinde deðilse direkt pozisyonu döndür
+        return position;
     }
 }
