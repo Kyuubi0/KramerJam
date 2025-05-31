@@ -23,14 +23,12 @@ public class StartingSequenceController : MonoBehaviour
 
     private void Awake()
     {
-        // Baþlangýçta tüm sprite'lar þeffaf
         SetAlpha(Room, 0);
         SetAlpha(Light1, 0);
         SetAlpha(View, 0);
         SetAlpha(Light2, 0);
         SetAlpha(Frame, 0);
 
-        // UI elemanlarý kapalý
         DialogText.gameObject.SetActive(false);
         ContinueButton.gameObject.SetActive(false);
     }
@@ -42,56 +40,55 @@ public class StartingSequenceController : MonoBehaviour
 
     private IEnumerator Sequence()
     {
-        // Room ve Light1 ayný anda fade-in
         StartCoroutine(FadeIn(Room, fadeDuration));
         yield return StartCoroutine(FadeIn(Light1, fadeDuration));
 
-        // Light1 titreme (pulse)
         yield return StartCoroutine(Pulse(Light1, lightPulseCount, 0.2f, 1f));
+        yield return StartCoroutine(FadeOut(Light1, fadeDuration));
+        Light1.gameObject.SetActive(false);
 
-        // Ýlk diyalog göster
-        DialogText.text = "Neler oluyor?";
         DialogText.gameObject.SetActive(true);
-        DialogText.alpha = 1f;
+        yield return StartCoroutine(ShowText("Neler oluyor?"));
 
-        // Devam butonunu göster ve týklamayý bekle
         ContinueButton.gameObject.SetActive(true);
         bool clicked = false;
         ContinueButton.onClick.RemoveAllListeners();
         ContinueButton.onClick.AddListener(() => clicked = true);
         yield return new WaitUntil(() => clicked);
 
-        // Diyalog ve buton gizle
         DialogText.gameObject.SetActive(false);
         ContinueButton.gameObject.SetActive(false);
 
-        // Room ve Light1 fade-out
         StartCoroutine(FadeOut(Room, fadeDuration));
-        yield return StartCoroutine(FadeOut(Light1, fadeDuration));
+        yield return StartCoroutine(FadeOut(Light1, fadeDuration)); // Light1 zaten gizli ama sorun yok
 
-        // View, Light2, Frame ayný anda fade-in
         StartCoroutine(FadeIn(View, fadeDuration));
         StartCoroutine(FadeIn(Frame, fadeDuration));
-        yield return StartCoroutine(FadeIn(Light2, fadeDuration, Light2.color.a)); // Light2 orijinal alpha'sýný koru
+        yield return StartCoroutine(FadeIn(Light2, fadeDuration, Light2.color.a));
 
-        // Ýkinci diyalog göster
-        DialogText.text = "Kuzey ýþýklarý mý, ne alaka?";
         DialogText.gameObject.SetActive(true);
-        DialogText.alpha = 1f;
+        yield return StartCoroutine(ShowText("Kuzey ýþýklarý mý, ne alaka?"));
 
-        // Devam butonunu göster, týklamayý bekle
         clicked = false;
         ContinueButton.gameObject.SetActive(true);
         ContinueButton.onClick.RemoveAllListeners();
         ContinueButton.onClick.AddListener(() => clicked = true);
         yield return new WaitUntil(() => clicked);
 
-        // Diyalog ve buton gizle
         DialogText.gameObject.SetActive(false);
         ContinueButton.gameObject.SetActive(false);
 
-        // Sahne geçiþi
         SceneManager.LoadScene("MainScene");
+    }
+
+    private IEnumerator ShowText(string message, float delay = 0.05f)
+    {
+        DialogText.text = "";
+        foreach (char c in message)
+        {
+            DialogText.text += c;
+            yield return new WaitForSeconds(delay);
+        }
     }
 
     private void SetAlpha(SpriteRenderer sr, float alpha)
