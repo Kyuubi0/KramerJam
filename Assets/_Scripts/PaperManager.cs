@@ -1,18 +1,21 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PaperManager : MonoBehaviour
 {
     public static PaperManager Instance;
 
-    public GameObject notePopup;        // Popup paneli
-    public TextMeshProUGUI noteText;    // Not metni
-    public TextMeshProUGUI noteCountText; // Toplanan kaðýt sayýsý metni
+    public GameObject notePopup;
+    public TextMeshProUGUI noteText;
+    public TextMeshProUGUI noteCountText;
 
-    private List<PaperNote> collectedNotes = new List<PaperNote>();
+    private HashSet<string> collectedNoteIDs = new HashSet<string>();
+    private List<PaperNote> allPapersInScene = new List<PaperNote>();
+
     private PaperNote lastShownNote;
-    private int totalNotes = 17;
+    [SerializeField] private int totalNotes = 17;
 
     void Awake()
     {
@@ -21,26 +24,56 @@ public class PaperManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Yeni sahnedeki tüm PaperNote'larý bul
+        allPapersInScene.Clear();
+        var allPapers = FindObjectsOfType<PaperNote>();
+
+        foreach (var paper in allPapers)
+        {
+            if (collectedNoteIDs.Contains(paper.noteID))
+            {
+                paper.gameObject.SetActive(false); // Zaten toplandýysa gizle
+            }
+            else
+            {
+                allPapersInScene.Add(paper); // Scene'deki aktif paper'larý tut
+            }
+        }
+
+        UpdateNoteCount(); // UI'ý güncelle
     }
 
     public void CollectNote(PaperNote note)
     {
-        if (!collectedNotes.Contains(note))
+        if (!collectedNoteIDs.Contains(note.noteID))
         {
-            collectedNotes.Add(note);
+            collectedNoteIDs.Add(note.noteID);
             UpdateNoteCount();
 
-            if (collectedNotes.Count >= totalNotes)
+            if (collectedNoteIDs.Count >= totalNotes)
             {
-                GameManager.Instance.allNotesCollected = true;  // Tüm notlar toplandý
+                GameManager.Instance.allNotesCollected = true;
             }
         }
     }
 
     public void ShowNote(PaperNote note)
     {
-        lastShownNote = note;  // Gösterilen son notu kaydet
+        lastShownNote = note;
         noteText.text = note.noteContent;
         notePopup.SetActive(true);
     }
@@ -55,9 +88,8 @@ public class PaperManager : MonoBehaviour
         }
     }
 
-
     void UpdateNoteCount()
     {
-        noteCountText.text = $"Notes Collected: {collectedNotes.Count} / {totalNotes}";
+        noteCountText.text = $"Notes Collected: {collectedNoteIDs.Count} / {totalNotes}";
     }
 }

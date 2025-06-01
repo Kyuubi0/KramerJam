@@ -14,6 +14,7 @@ public class DialogManager : MonoBehaviour
 
     private Queue<string> sentences = new Queue<string>();
     private bool isDialogActive = false;
+    private Coroutine typingCoroutine;
 
     void Awake()
     {
@@ -50,9 +51,11 @@ public class DialogManager : MonoBehaviour
             return;
         }
 
-        StopAllCoroutines();
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+
         string sentence = sentences.Dequeue();
-        StartCoroutine(TypeSentence(sentence));
+        typingCoroutine = StartCoroutine(TypeSentence(sentence));
     }
 
     IEnumerator TypeSentence(string sentence)
@@ -69,5 +72,11 @@ public class DialogManager : MonoBehaviour
     {
         isDialogActive = false;
         dialogPanel.SetActive(false);
+    }
+
+    // Bu, diðer scriptlerin çaðýrdýðý alternatif isim olabilir
+    public IEnumerator StartDialogRoutine(string sentence)
+    {
+        yield return TypeSentence(sentence);
     }
 }

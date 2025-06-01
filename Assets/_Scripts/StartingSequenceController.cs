@@ -48,7 +48,7 @@ public class StartingSequenceController : MonoBehaviour
         Light1.gameObject.SetActive(false);
 
         DialogText.gameObject.SetActive(true);
-        yield return StartCoroutine(ShowText("Neler oluyor?"));
+        yield return StartCoroutine(ShowText("What's going on?"));
 
         ContinueButton.gameObject.SetActive(true);
         bool clicked = false;
@@ -67,7 +67,7 @@ public class StartingSequenceController : MonoBehaviour
         yield return StartCoroutine(FadeIn(Light2, fadeDuration, Light2.color.a));
 
         DialogText.gameObject.SetActive(true);
-        yield return StartCoroutine(ShowText("Kuzey ýþýklarý mý, ne alaka?"));
+        yield return StartCoroutine(ShowText("Northern lights? WHY THE HELL ARE THEY HERE?!"));
 
         clicked = false;
         ContinueButton.gameObject.SetActive(true);

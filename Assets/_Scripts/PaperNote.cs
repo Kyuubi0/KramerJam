@@ -3,8 +3,7 @@ using UnityEngine;
 
 public class PaperNote : MonoBehaviour
 {
-    [TextArea]
+    public string noteID; // Benzersiz ID (örnek: "note_1_sceneA")
     public string noteContent;
-
-    public List<string> dialogLines;  // Her not için dialog satýrlarý burada
+    public List<string> dialogLines;
 }
