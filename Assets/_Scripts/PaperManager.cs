@@ -6,12 +6,12 @@ public class PaperManager : MonoBehaviour
 {
     public static PaperManager Instance;
 
-    public GameObject notePopup;
-    public TextMeshProUGUI noteText;      // TextMeshPro tipinde olmalý!
-    public TextMeshProUGUI noteCountText;
+    public GameObject notePopup;        // Popup paneli
+    public TextMeshProUGUI noteText;    // Not metni
+    public TextMeshProUGUI noteCountText; // Toplanan kaðýt sayýsý metni
 
     private List<PaperNote> collectedNotes = new List<PaperNote>();
-    private int totalNotes = 17; // Kaðýt sayýsýný buraya yazabilirsin, deðiþtirilebilir
+    private int totalNotes = 17;
 
     void Awake()
     {
@@ -23,14 +23,17 @@ public class PaperManager : MonoBehaviour
         Instance = this;
     }
 
-    public void ShowNote(PaperNote note)
+    public void CollectNote(PaperNote note)
     {
         if (!collectedNotes.Contains(note))
         {
             collectedNotes.Add(note);
             UpdateNoteCount();
         }
+    }
 
+    public void ShowNote(PaperNote note)
+    {
         noteText.text = note.noteContent;
         notePopup.SetActive(true);
     }

@@ -3,22 +3,28 @@ using UnityEngine;
 public class PaperPickup : MonoBehaviour
 {
     private PaperNote paperNote;
+    private bool isCollected = false;
 
-    private void Start()
+    void Awake()
     {
         paperNote = GetComponent<PaperNote>();
         if (paperNote == null)
         {
-            Debug.LogError("PaperNote component not found on this object!");
+            Debug.LogError("PaperNote component is missing on " + gameObject.name);
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player") && paperNote != null)
+        if (!isCollected && other.CompareTag("Player"))
         {
-            PaperManager.Instance.CollectNote(paperNote);
-            gameObject.SetActive(false);
+            if (paperNote != null)
+            {
+                isCollected = true;
+                PaperManager.Instance.CollectNote(paperNote);
+                PaperManager.Instance.ShowNote(paperNote);
+                gameObject.SetActive(false);
+            }
         }
     }
 }
