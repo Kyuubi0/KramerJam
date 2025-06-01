@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/KMFScene.unity
     guid: 0b779e62b8137324bb00b5e1d9dedfd7
+  - enabled: 1
+    path: Assets/Scenes/FinalScene.unity
+    guid: d6de7f6a85edf614cbc6447b835a4d0a
   m_configObjects: {}
