@@ -11,6 +11,7 @@ public class PaperManager : MonoBehaviour
     public TextMeshProUGUI noteCountText; // Toplanan kaðýt sayýsý metni
 
     private List<PaperNote> collectedNotes = new List<PaperNote>();
+    private PaperNote lastShownNote;
     private int totalNotes = 17;
 
     void Awake()
@@ -34,6 +35,7 @@ public class PaperManager : MonoBehaviour
 
     public void ShowNote(PaperNote note)
     {
+        lastShownNote = note;  // Gösterilen son notu kaydet
         noteText.text = note.noteContent;
         notePopup.SetActive(true);
     }
@@ -41,7 +43,13 @@ public class PaperManager : MonoBehaviour
     public void CloseNote()
     {
         notePopup.SetActive(false);
+
+        if (lastShownNote != null && lastShownNote.dialogLines != null && lastShownNote.dialogLines.Count > 0)
+        {
+            DialogManager.Instance.StartDialog(lastShownNote.dialogLines);
+        }
     }
+
 
     void UpdateNoteCount()
     {

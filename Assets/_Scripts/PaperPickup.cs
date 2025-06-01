@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PaperPickup : MonoBehaviour
@@ -24,6 +25,16 @@ public class PaperPickup : MonoBehaviour
                 PaperManager.Instance.CollectNote(paperNote);
                 PaperManager.Instance.ShowNote(paperNote);
                 gameObject.SetActive(false);
+
+                //// Dialog için metinleri hazýrla
+                //List<string> noteDialog = new List<string>()
+                //{
+                //    "Yeni bir not buldum!",
+                //    paperNote.noteContent,
+                //    "Hadi devam edelim..."
+                //};
+
+                //DialogManager.Instance.StartDialog(noteDialog);
             }
         }
     }
