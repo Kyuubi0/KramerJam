@@ -30,6 +30,11 @@ public class PaperManager : MonoBehaviour
         {
             collectedNotes.Add(note);
             UpdateNoteCount();
+
+            if (collectedNotes.Count >= totalNotes)
+            {
+                GameManager.Instance.allNotesCollected = true;  // Tüm notlar toplandý
+            }
         }
     }
 
