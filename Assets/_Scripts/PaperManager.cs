@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,8 +13,8 @@ public class PaperManager : MonoBehaviour
 
     private HashSet<string> collectedNoteIDs = new HashSet<string>();
     private List<PaperNote> allPapersInScene = new List<PaperNote>();
-
     private PaperNote lastShownNote;
+
     [SerializeField] private int totalNotes = 17;
 
     void Awake()
@@ -35,10 +35,14 @@ public class PaperManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
-
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Yeni sahnedeki tüm PaperNote'larý bul
+        // Yeni sahnedeki referanslarÄ± tazele
+        notePopup = GameObject.Find("PopupPanel");
+        noteText = GameObject.Find("PopupNoteText")?.GetComponent<TextMeshProUGUI>();
+        noteCountText = GameObject.Find("NotesCollectedText")?.GetComponent<TextMeshProUGUI>();
+
+        // PaperNote'larÄ± taramaya devam
         allPapersInScene.Clear();
         var allPapers = FindObjectsOfType<PaperNote>();
 
@@ -46,15 +50,40 @@ public class PaperManager : MonoBehaviour
         {
             if (collectedNoteIDs.Contains(paper.noteID))
             {
-                paper.gameObject.SetActive(false); // Zaten toplandýysa gizle
+                paper.gameObject.SetActive(false); // Zaten toplandÄ±ysa gizle
             }
             else
             {
-                allPapersInScene.Add(paper); // Scene'deki aktif paper'larý tut
+                allPapersInScene.Add(paper);
             }
         }
 
-        UpdateNoteCount(); // UI'ý güncelle
+        UpdateNoteCount();
+    }
+
+
+
+    private void FindUIReferences()
+    {
+        if (notePopup == null)
+            notePopup = GameObject.Find("NotePopup");
+
+        if (noteText == null)
+        {
+            var textObj = GameObject.Find("NoteText");
+            if (textObj != null) noteText = textObj.GetComponent<TextMeshProUGUI>();
+        }
+
+        if (noteCountText == null)
+        {
+            var countObj = GameObject.Find("NoteCountText");
+            if (countObj != null) noteCountText = countObj.GetComponent<TextMeshProUGUI>();
+        }
+
+        if (notePopup == null || noteText == null || noteCountText == null)
+        {
+            Debug.LogWarning("PaperManager: UI referanslarÄ± eksik, sahnede doÄŸru isimleri verdiÄŸinden emin ol.");
+        }
     }
 
     public void CollectNote(PaperNote note)
@@ -74,13 +103,13 @@ public class PaperManager : MonoBehaviour
     public void ShowNote(PaperNote note)
     {
         lastShownNote = note;
-        noteText.text = note.noteContent;
-        notePopup.SetActive(true);
+        if (noteText != null) noteText.text = note.noteContent;
+        if (notePopup != null) notePopup.SetActive(true);
     }
 
     public void CloseNote()
     {
-        notePopup.SetActive(false);
+        if (notePopup != null) notePopup.SetActive(false);
 
         if (lastShownNote != null && lastShownNote.dialogLines != null && lastShownNote.dialogLines.Count > 0)
         {
@@ -88,8 +117,14 @@ public class PaperManager : MonoBehaviour
         }
     }
 
+    public bool Collected(string noteID)
+    {
+        return collectedNoteIDs.Contains(noteID);
+    }
+
     void UpdateNoteCount()
     {
-        noteCountText.text = $"Notes Collected: {collectedNoteIDs.Count} / {totalNotes}";
+        if (noteCountText != null)
+            noteCountText.text = $"Notes Collected: {collectedNoteIDs.Count} / {totalNotes}";
     }
 }

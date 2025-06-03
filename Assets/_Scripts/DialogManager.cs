@@ -14,7 +14,6 @@ public class DialogManager : MonoBehaviour
 
     private Queue<string> sentences = new Queue<string>();
     private bool isDialogActive = false;
-    private Coroutine typingCoroutine;
 
     void Awake()
     {
@@ -25,6 +24,26 @@ public class DialogManager : MonoBehaviour
 
         dialogPanel.SetActive(false);
         nextButton.onClick.AddListener(DisplayNextSentence);
+    }
+
+    // Tek bir cümle için coroutine
+    public IEnumerator StartDialogRoutine(string sentence)
+    {
+        StartDialog(new List<string> { sentence });
+        while (dialogPanel.activeSelf)
+        {
+            yield return null;
+        }
+    }
+
+    // Liste ile coroutine
+    public IEnumerator StartDialogRoutine(List<string> dialogSentences)
+    {
+        StartDialog(dialogSentences);
+        while (dialogPanel.activeSelf)
+        {
+            yield return null;
+        }
     }
 
     public void StartDialog(List<string> dialogSentences)
@@ -51,11 +70,9 @@ public class DialogManager : MonoBehaviour
             return;
         }
 
-        if (typingCoroutine != null)
-            StopCoroutine(typingCoroutine);
-
+        StopAllCoroutines();
         string sentence = sentences.Dequeue();
-        typingCoroutine = StartCoroutine(TypeSentence(sentence));
+        StartCoroutine(TypeSentence(sentence));
     }
 
     IEnumerator TypeSentence(string sentence)
@@ -64,7 +81,7 @@ public class DialogManager : MonoBehaviour
         foreach (char letter in sentence.ToCharArray())
         {
             dialogText.text += letter;
-            yield return new WaitForSeconds(0.03f); // Yazma hýzý
+            yield return new WaitForSeconds(0.03f);
         }
     }
 
@@ -74,9 +91,9 @@ public class DialogManager : MonoBehaviour
         dialogPanel.SetActive(false);
     }
 
-    // Bu, diðer scriptlerin çaðýrdýðý alternatif isim olabilir
-    public IEnumerator StartDialogRoutine(string sentence)
+    public bool IsDialogActive()
     {
-        yield return TypeSentence(sentence);
+        return isDialogActive;
     }
+
 }

@@ -22,8 +22,8 @@ EditorBuildSettings:
     guid: 0b779e62b8137324bb00b5e1d9dedfd7
   - enabled: 1
     path: Assets/Scenes/FinalScene.unity
-    guid: d6de7f6a85edf614cbc6447b835a4d0a
+    guid: d490762114c1c2d4e99cc8930024d319
   - enabled: 1
     path: Assets/Scenes/LoseScene.unity
-    guid: 6cb7d4fce554e0c479261323d013694e
+    guid: 5f07586a1ce82034e93d88699bd1fe00
   m_configObjects: {}

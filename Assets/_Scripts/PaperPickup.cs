@@ -3,7 +3,6 @@ using UnityEngine;
 public class PaperPickup : MonoBehaviour
 {
     private PaperNote paperNote;
-    private bool isCollected = false;
 
     void Awake()
     {
@@ -16,11 +15,10 @@ public class PaperPickup : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!isCollected && other.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
-            if (paperNote != null)
+            if (paperNote != null && !PaperManager.Instance.Collected(paperNote.noteID))
             {
-                isCollected = true;
                 PaperManager.Instance.CollectNote(paperNote);
                 PaperManager.Instance.ShowNote(paperNote);
                 gameObject.SetActive(false);
