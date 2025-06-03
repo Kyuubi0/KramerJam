@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,96 +6,109 @@ using UnityEngine.SceneManagement;
 
 public class FinalCinematic_Win : MonoBehaviour
 {
-    [Header("References")]
     public Transform player;
     public Transform boss;
+    public SpriteRenderer bossRenderer;
+    public Sprite bossLeftSprite, bossRightSprite, bossBackSprite, bossFrontSprite;
+
     public Transform playerTargetPosition;
     public Transform bossExitPosition;
+    public float moveSpeed = 2f;
+    public float bossPaceDuration = 2f; // Saða-sola yürüme süresi
 
-    public PlayerMovement playerMovementScript;
-    public Animator bossAnimator;
+    public List<string> dialogPhase1;
+    public List<string> dialogPhase2;
+    public List<string> dialogPhase3;
+    public List<string> dialogPhase4;
 
-    [Header("Timings")]
-    public float playerMoveSpeed = 1f;
-    public float bossMoveSpeed = 1f;
-    public float delayBeforeBossTurn = 1f;
-    public float delayAfterBossExit = 2f;
+    public GameObject fadeToBlackPanel; // UI Panel (Canvas > Image) - siyah panel
 
-    [Header("Dialogues")]
-    public List<string> initialDialogues;
-    public List<string> midDialogues;
-    public List<string> endDialogues;
-
-    private bool hasTriggered = false;
+    [SerializeField] private bool isCinematicRunning = false;
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!hasTriggered && other.CompareTag("Player"))
+        if (!isCinematicRunning && other.CompareTag("Player"))
         {
-            hasTriggered = true;
+            isCinematicRunning = true;
             StartCoroutine(CinematicSequence());
         }
     }
 
     IEnumerator CinematicSequence()
     {
-        // Disable player input
-        if (playerMovementScript != null)
-            playerMovementScript.enabled = false;
+        print("cagýrýldým.");
+        // 1. Player hedef pozisyona gider
+        yield return MoveToPosition(player, playerTargetPosition.position);
 
-        // Move player to target position
-        yield return StartCoroutine(MoveToPosition(player, playerTargetPosition.position, playerMoveSpeed));
+        // Boss bize döner
+        bossRenderer.sprite = bossFrontSprite;
 
-        // Wait, then boss turns around
-        yield return new WaitForSeconds(delayBeforeBossTurn);
-        boss.localScale = new Vector3(-boss.localScale.x, boss.localScale.y, boss.localScale.z); // Flip
+        // Diyalog 1
+        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(dialogPhase1));
 
-        // Start initial dialogues
-        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(initialDialogues));
+        // 2. Boss sað-sol volta
+        yield return StartCoroutine(BossPaceRoutine());
 
-        // Boss starts pacing (left-right walk)
-        StartCoroutine(BossPacing());
+        // Diyalog 2
+        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(dialogPhase2));
 
-        // Mid dialog while boss is pacing
-        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(midDialogues));
+        // 3. Boss exit pozisyona yürür
+        yield return MoveToPosition(boss, bossExitPosition.position);
+        bossRenderer.sprite = bossBackSprite;
 
-        // Boss walks to exit
-        StopCoroutine(BossPacing()); // Optional if you only want one pacing set
-        yield return StartCoroutine(MoveToPosition(boss, bossExitPosition.position, bossMoveSpeed));
+        // Diyalog 3
+        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(dialogPhase3));
 
-        // Wait, final dialogues
-        yield return new WaitForSeconds(delayAfterBossExit);
-        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(endDialogues));
+        // 4. Son diyalog
+        yield return StartCoroutine(DialogManager.Instance.StartDialogRoutine(dialogPhase4));
 
-        // Scene transition
+        // Fade to black
+        fadeToBlackPanel.SetActive(true);
+        CanvasGroup canvasGroup = fadeToBlackPanel.GetComponent<CanvasGroup>();
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime;
+            canvasGroup.alpha = t;
+            yield return null;
+        }
+
+        // Sahne geçiþi
+        yield return new WaitForSeconds(1f);
         SceneManager.LoadScene("GoodEndScene");
     }
 
-    IEnumerator MoveToPosition(Transform obj, Vector3 target, float speed)
+    IEnumerator MoveToPosition(Transform obj, Vector3 targetPos)
     {
-        while (Vector3.Distance(obj.position, target) > 0.05f)
+        while (Vector3.Distance(obj.position, targetPos) > 0.1f)
         {
-            obj.position = Vector3.MoveTowards(obj.position, target, speed * Time.deltaTime);
+            obj.position = Vector3.MoveTowards(obj.position, targetPos, moveSpeed * Time.deltaTime);
             yield return null;
         }
     }
 
-    IEnumerator BossPacing()
-    {
-        Vector3 left = boss.position + Vector3.left * 0.5f;
-        Vector3 right = boss.position + Vector3.right * 0.5f;
-        bool goingRight = true;
 
-        while (true)
+    IEnumerator BossPaceRoutine()
+    {
+        float elapsed = 0f;
+        bool goRight = true;
+
+        Vector3 originalPos = boss.position;
+        Vector3 offset = new Vector3(1.5f, 0, 0);
+
+        while (elapsed < bossPaceDuration)
         {
-            Vector3 target = goingRight ? right : left;
-            while (Vector3.Distance(boss.position, target) > 0.05f)
+            Vector3 target = goRight ? originalPos + offset : originalPos - offset;
+            bossRenderer.sprite = goRight ? bossRightSprite : bossLeftSprite;
+
+            while (Vector3.Distance(boss.position, target) > 0.1f)
             {
-                boss.position = Vector3.MoveTowards(boss.position, target, bossMoveSpeed * Time.deltaTime);
+                boss.position = Vector3.MoveTowards(boss.position, target, moveSpeed * Time.deltaTime);
                 yield return null;
             }
-            goingRight = !goingRight;
-            yield return new WaitForSeconds(0.3f);
+
+            goRight = !goRight;
+            elapsed += 1f;
         }
     }
 }
